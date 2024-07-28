@@ -70,7 +70,7 @@ def display_scatter_plot_and_data(df, title, date_key):
         index=list(date_options).index(default_date),  # Set the default index
         key=date_key + '_selected_date'
     )
-    
+
     filtered_df = df[df['Start Date'].dt.strftime('%Y-%m-%d') == selected_date]
 
     selected_products = st.multiselect(
@@ -102,23 +102,12 @@ def display_scatter_plot_and_data(df, title, date_key):
     # Display the filtered data
     st.write(filtered_df[['Start Date', 'Product Name', 'Category', 'Price Change %', 'Quantity Change %']])
 
-
-tab1, tab2 = st.tabs(["Quantity Impact of Price Changes", "Month-Over-Month Data"])
-
-with tab1:
-    display_scatter_plot_and_data(df, "Quantity Impact of Price Changes", "tab1")
-
-with tab2:
-    display_scatter_plot_and_data(df4wk, "Month-Over-Month Data", "tab2")
-
 '''
 # :basket: BetterBasket and Econo
 
 '''
 
-# Add some spacing
-''
-''
+
 
 tab1, tab2, tab3 = st.tabs(["Quantity Impact of Price Changes", "Month-Over-Month Data", "Recommendations"])
 
