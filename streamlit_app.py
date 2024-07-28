@@ -51,11 +51,66 @@ def get_gdp_data4wk():
 
 df4wk = get_gdp_data4wk()
 
+def display_scatter_plot_and_data(df, title, date_key):
+    # Title
+    st.title(title)
+    df['Start Date'] = pd.to_datetime(df['Start Date'])
+    default_date = '2024-03-28'
+    # Ensure the default date is in the correct format
+    default_date = pd.to_datetime(default_date).strftime('%Y-%m-%d')
+    
+    # Check if the default date exists in the data
+    date_options = df['Start Date'].dt.strftime('%Y-%m-%d').unique()
+    if default_date not in date_options:
+        default_date = date_options[0]  # Fallback to the first date if default not available
 
-# -----------------------------------------------------------------------------
-# Draw the actual page
+    selected_date = st.selectbox(
+        'Select a date to show',
+        options=date_options,
+        index=list(date_options).index(default_date),  # Set the default index
+        key=date_key + '_selected_date'
+    )
+    
+    filtered_df = df[df['Start Date'].dt.strftime('%Y-%m-%d') == selected_date]
 
-# Set the title that appears at the top of the page.
+    selected_products = st.multiselect(
+        'Select products to show',
+        options=filtered_df['Product Name'].unique(),
+        default=filtered_df['Product Name'].unique(),
+        key=date_key + '_selected_products'
+    )
+
+    # Further filter the data based on the selected products
+    filtered_df = filtered_df[filtered_df['Product Name'].isin(selected_products)]
+
+    # Scatter plot using Plotly
+    fig = px.scatter(
+        filtered_df, 
+        x='Price Change %', 
+        y='Quantity Change %', 
+        title=f'Scatter Plot of {title}',
+        labels={'Price Change %': 'Price Change %', 'Quantity Change %': 'Quantity Change %'},
+        color='Category',
+        size='Quantity',
+        size_max=20,
+        hover_data=['Product Name', 'SKU', 'Start Date']
+    )
+
+    # Display the plot
+    st.plotly_chart(fig)
+
+    # Display the filtered data
+    st.write(filtered_df[['Start Date', 'Product Name', 'Category', 'Price Change %', 'Quantity Change %']])
+
+
+tab1, tab2 = st.tabs(["Quantity Impact of Price Changes", "Month-Over-Month Data"])
+
+with tab1:
+    display_scatter_plot_and_data(df, "Quantity Impact of Price Changes", "tab1")
+
+with tab2:
+    display_scatter_plot_and_data(df4wk, "Month-Over-Month Data", "tab2")
+
 '''
 # :basket: BetterBasket and Econo
 
@@ -64,98 +119,22 @@ df4wk = get_gdp_data4wk()
 # Add some spacing
 ''
 ''
-tab1, tab2, tab3 = st.tabs(["Scatter Plot: Week over Week","Scatter Plot: Month over Month", "Recommendations"])
+
+tab1, tab2, tab3 = st.tabs(["Quantity Impact of Price Changes", "Month-Over-Month Data", "Recommendations"])
 
 with tab1:
-    # Title
-    st.title("Quantity Impact of Price Changes")
-    df['Start Date'] = pd.to_datetime(df['Start Date'])
+    display_scatter_plot_and_data(df, "Quantity Impact of Price Changes",  "selected_dates_tab1")
 
-    # Date selection toggle
-    all_dates = st.checkbox('Show all dates', value=True, key='all_dates_tab1')
-
-    if all_dates:
-        filtered_df = df
-    else:
-        # Let the user select specific dates
-        selected_dates = st.multiselect(
-            'Select dates to show',
-            options=df['Start Date'].dt.strftime('%Y-%m-%d').unique(),
-            default=df['Start Date'].dt.strftime('%Y-%m-%d').unique(), 
-            key='all_dates_tab1'
-        )
-        
-        # Filter the data based on selected dates
-        filtered_df = df[df['Start Date'].dt.strftime('%Y-%m-%d').isin(selected_dates)]
-
-    # Scatter plot using Plotly
-    fig = px.scatter(
-        filtered_df, 
-        x='Price Change %', 
-        y='Quantity Change %', 
-        title='Scatter Plot of Quantity Change % vs Percentage Change',
-        labels={'Percentage Change': 'Percentage Change', 'Quantity Change %': 'Quantity Change %'},
-        color='Category',
-        size='Quantity',
-        size_max=20,
-        hover_data=['Product Name', 'SKU', 'Start Date']
-    )
-
-
-
-    # Display the plot
-    st.plotly_chart(fig)
-
-    # Display the filtered data
-    #selected_columns = ['Start Date', 'Product Name', 'Category', 'Price Change %', 'Quantity Change %']
-    #filtered_selected_df = filtered_df[selected_columns]
-    st.write(filtered_df[['Start Date', 'Product Name', 'Category', 'Price Change %', 'Quantity Change %']])
 with tab2:
-
-       # Title
-    st.title("Quantity Impact of Price Changes")
-    df4wk['Start Date'] = pd.to_datetime(df4wk['Start Date'])
-
-    # Date selection toggle
-    all_dates = st.checkbox('Show all dates', value=True, key='all_dates_tab2')
-
-    if all_dates:
-        filtered_df4wk = df4wk
-    else:
-        # Let the user select specific dates
-        selected_dates4wk = st.multiselect(
-            'Select dates to show',
-            options=df4wk['Start Date'].dt.strftime('%Y-%m-%d').unique(),
-            default=df4wk['Start Date'].dt.strftime('%Y-%m-%d').unique(),
-            key='all_dates_tab2'
-
-        )
-        
-        # Filter the data based on selected dates
-        filtered_df4wk = df4wk[df4wk['Start Date'].dt.strftime('%Y-%m-%d').isin(selected_dates4wk)]
-
-    # Scatter plot using Plotly
-    fig = px.scatter(
-        filtered_df4wk, 
-        x='Price Change %', 
-        y='4 Week Avg % Change', 
-        title='Scatter Plot of Quantity Change % vs Percentage Change',
-        labels={'Percentage Change': 'Percentage Change', '4 Week Avg % Change': '4 Week Avg % Change'},
-        color='Category',
-        size='Quantity',
-        size_max=20,
-        hover_data=['Product Name', 'SKU', 'Start Date']
-    )
+    display_scatter_plot_and_data(df4wk, "Month-Over-Month Data", "selected_dates_tab2")
 
 
+# -----------------------------------------------------------------------------
+# Draw the actual page
 
-    # Display the plot
-    st.plotly_chart(fig)
+# Set the title that appears at the top of the page.
 
-    # Display the filtered data
-    #selected_columns = ['Start Date', 'Product Name', 'Category', 'Price Change %', 'Quantity Change %']
-    #filtered_selected_df = filtered_df[selected_columns]
-    st.write(filtered_df4wk[['Start Date', 'Product Name', 'Category', 'Price Change %', '4 Week Avg % Change']])
+#tab1, tab2, tab3 = st.tabs(["Scatter Plot: Week over Week","Scatter Plot: Month over Month", "Recommendations"])
 
 
 with tab3:
