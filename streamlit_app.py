@@ -24,7 +24,7 @@ def get_gdp_data():
     """
 
     # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/matching_products.csv'
+    DATA_FILENAME = Path(__file__).parent/'data/matching_products_upc.csv'
     df = pd.read_csv(DATA_FILENAME)
 
     
@@ -42,7 +42,7 @@ def get_gdp_data4wk():
     """
 
     # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/matching_products4wk.csv'
+    DATA_FILENAME = Path(__file__).parent/'data/matching_products4wk_upc.csv'
     df = pd.read_csv(DATA_FILENAME)
 
     
