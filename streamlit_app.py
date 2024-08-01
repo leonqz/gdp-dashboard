@@ -140,73 +140,97 @@ def display_scatter_plot_and_data(df, title, date_key):
 
 def display_comparative_analysis(df):
      # Convert 'Start Date' to datetime
-    # Convert 'Start Date' to datetime
     df['Start Date'] = pd.to_datetime(df['Start Date'])
 
-
+    # Set default date and product
     default_date = '2024-05-16'
-    default_product = 'OCEAN SPRAY CRAN/GRAPE DIET 64 OZ'
+    default_product = 'OCEAN SPRAY CRAN/GRAPE DIET'
+
+    # Get unique dates in the dataframe
     date_options = df['Start Date'].dt.strftime('%Y-%m-%d').unique()
 
-    # Select date and product
-    if default_date not in date_options:
-        default_date = date_options[-1]  # Fallback to the latest date if default is not available
-
-    # Select date
-    selected_date = st.selectbox(
+    # Sidebar selectors for date and product
+    selected_date = st.sidebar.selectbox(
         'Select a date to show',
         options=date_options,
-        index=list(date_options).index(default_date)  # Set the default index
+        index=list(date_options).index(default_date) if default_date in date_options else 0
     )
 
+    # Filter data for the selected date
     filtered_df = df[df['Start Date'].dt.strftime('%Y-%m-%d') == selected_date]
 
+    # Product selection in the sidebar
     product_options = filtered_df['Product Name'].unique()
-    if default_product not in product_options:
-        default_product = product_options[0]  # Fallback to the first product if default is not available
+    selected_product = st.sidebar.selectbox(
+        'Select a product for analysis', 
+        options=product_options, 
+        index=list(product_options).index(default_product) if default_product in product_options else 0
+    )
 
-    # Select product
-    selected_product = st.selectbox('Select a product for analysis', options=product_options, index=list(product_options).index(default_product))
-    product_data = filtered_df[filtered_df['Product Name'] == selected_product]
+    # Filter data for the selected product over the last 4 weeks
+    product_history = df[df['Product Name'] == selected_product]
 
+    # Get the latest date for the selected product
+    latest_date = product_history['Start Date'].max()
 
-    # Assuming 'Dollar Change' and 'Price Change %' are already calculated in df
-    dollar_change = product_data['Dollar Change'].values[0]
-    price_change_percent = product_data['Price Change %'].values[0]
+    # Filter for the last 4 weeks
+    start_date = latest_date - pd.Timedelta(weeks=4)
+    product_history_last_4_weeks = product_history[product_history['Start Date'] > start_date]
+
+  
+    product_data = product_history[product_history['Start Date'].dt.strftime('%Y-%m-%d') == selected_date]
     previous_week_date = (pd.to_datetime(selected_date) - pd.Timedelta(weeks=1)).strftime('%Y-%m-%d')
 
-    # Display summary text
-
+    dollar_change = product_data['Dollar Change'].values[0]
     price_change_percent = product_data['Price Change %'].values[0]
     price_trend = "increased" if price_change_percent > 0 else "decreased"
     trend_color = "green" if price_change_percent > 0 else "red"
     trend_emoji = "⬆️" if price_change_percent > 0 else "⬇️"
-
-
+    
+    # Extract relevant columns for display
+    display_columns = ['Start Date', 'Total Quantity']
+    product_history_display = product_history_last_4_weeks[display_columns]
     st.markdown(f"""
-    ### <span style='background-color:#0000FF; padding:5px; border-radius:5px; font-family:monospace;'>{selected_product}</span> 
-    <span style='color:{trend_color};'>{trend_emoji} {price_trend}</span> in price from {previous_week_date} to {selected_date} 
-    ({price_change_percent:.2f}%)
-    """, unsafe_allow_html=True)#    st.markdown(f"### {selected_product} {price_trend} in price from {previous_week_date} to {selected_date} by ${dollar_change:.2f} ({price_change_percent:.2f}%)")
-
-    # Create columns for charts
+    <span style='font-size:30px;'>
+        <span style='background-color:#0000FF; padding:5px; border-radius:5px; font-family:monospace;'>{selected_product}</span> 
+        <span style='color:{trend_color};'>{trend_emoji} {price_trend}</span> in price from {previous_week_date} to {selected_date} 
+        by ${dollar_change} ({price_change_percent:.2f}%)
+    </span>
+    """, unsafe_allow_html=True)
+    # Display charts for Quantity and Total Quantity comparison
     col1, col2 = st.columns(2)
 
-    # First chart: Quantity vs. Previous Week Quantity
     with col1:
-        st.header("Quantity Comparison")
+        st.header("Quantity Comparison Over Time")
         fig1 = go.Figure()
-        fig1.add_trace(go.Scatter(x=[previous_week_date, selected_date], y=[product_data['Previous Week Quantity'].values[0], product_data['Quantity'].values[0]], mode='lines+markers', name='Quantity'))
-        fig1.update_layout(title='Quantity vs Previous Week Quantity', xaxis_title='Date', yaxis_title='Quantity')
+        fig1.add_trace(go.Scatter(
+            x=product_history_last_4_weeks['Start Date'], 
+            y=product_history_last_4_weeks['Quantity'], 
+            mode='lines+markers', 
+            name='Quantity'
+        ))
+        fig1.update_layout(title='Quantity Over Last 4 Weeks', xaxis_title='Date', yaxis_title='Quantity')
         st.plotly_chart(fig1)
 
-    # Second chart: Total Quantity vs. Previous Week Total Quantity
     with col2:
-        st.header("All Econo Sales")
+        st.header("Total Quantity Comparison Over Time")
         fig2 = go.Figure()
-        fig2.add_trace(go.Scatter(x=[previous_week_date, selected_date], y=[product_data['Previous Week Total Quantity'].values[0], product_data['Total Quantity'].values[0]], mode='lines+markers', name='Total Quantity'))
-        fig2.update_layout(title='Total Quantity vs Previous Week Total Quantity', xaxis_title='Date', yaxis_title='Total Quantity')
+        fig2.add_trace(go.Scatter(
+            x=product_history_last_4_weeks['Start Date'], 
+            y=product_history_last_4_weeks['Total Quantity'], 
+            mode='lines+markers', 
+            name='Total Quantity'
+        ))
+        fig2.update_layout(title='Total Quantity Over Last 4 Weeks', xaxis_title='Date', yaxis_title='Total Quantity')
         st.plotly_chart(fig2)
+
+
+
+
+
+        
+    # Display summary text
+    price_trend = "increased" if dollar_change > 0 else "decreased"
 
 
     quantity_change = product_data['Quantity'].values[0] - product_data['Previous Week Quantity'].values[0]
@@ -219,9 +243,22 @@ def display_comparative_analysis(df):
     quantity_trend = "increased" if quantity_change > 0 else "decreased"
     total_quantity_trend = "increased" if total_quantity_change > 0 else "decreased"
 
-
-
     st.markdown(f"**{selected_product}** {quantity_trend} from **{product_data['Previous Week Quantity'].values[0]:,.2f}** to **{product_data['Quantity'].values[0]:,.2f}** ({quantity_percent_change:.2f}%), while all sales {total_quantity_trend} from **{product_data['Previous Week Total Quantity'].values[0]:,.2f}** to **{product_data['Total Quantity'].values[0]:,.2f}** ({total_quantity_percent_change:.2f}%).")
+
+   # Create a table for the data
+    table_data = {
+        "Metric": ["Price Change (Dollar)", "Price Change (%)", "Quantity Change (%)"],
+        "Selected Item": [
+            f"${dollar_change:.2f}" if dollar_change else "N/A", 
+            f"{price_change_percent:.2f}% {trend_emoji}", 
+            f"{quantity_percent_change:.2f}%"
+        ],
+        "All Items": ["N/A",  "N/A", f"{total_quantity_percent_change:.2f}%"]
+    }
+    df_table = pd.DataFrame(table_data)
+
+    st.table(df_table)
+
 
 '''
 # :basket: BetterBasket and Econo
