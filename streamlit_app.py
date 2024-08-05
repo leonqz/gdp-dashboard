@@ -54,6 +54,24 @@ def get_gdp_data4wk():
 
 df4wk = get_gdp_data4wk()
 
+def get_aguadillasales_data():
+    """Grab GDP data from a CSV file.
+
+    This uses caching to avoid having to read the file every time. If we were
+    reading from an HTTP endpoint instead of a file, it's a good idea to set
+    a maximum age to the cache with the TTL argument: @st.cache_data(ttl='1d')
+    """
+
+    # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
+    DATA_FILENAME = Path(__file__).parent/'data/Aguadilla_sales_073124.csv'
+    df = pd.read_csv(DATA_FILENAME)
+
+    
+
+    return df
+
+aguadilla_sales = get_aguadillasales_data()
+
 def display_scatter_plot_and_data(df, title, date_key):
     # Title
     st.title(title)
@@ -259,6 +277,55 @@ def display_comparative_analysis(df):
 
     st.table(df_table)
 
+# Function to display the scatter plot for the new data
+def display_new_chain_data(df):
+    st.title("Aguadilla Sales Analysis")
+
+
+    # Ensure 'UPC' and 'Item' columns are strings
+    df['UPC'] = df['UPC'].astype(str)
+    df['Item'] = df['Item'].astype(str)
+
+    # Convert percentage change columns to numeric after stripping '%' symbol
+    df['Price Change %'] = pd.to_numeric(df['Price Change %'].astype(str).str.replace('%', ''), errors='coerce') * 100
+    df['Quantity Change %'] = pd.to_numeric(df['Quantity Change %'].astype(str).str.replace('%', ''), errors='coerce') * 100
+
+    # Convert price and quantity columns to numeric
+    df['Price 7/31'] = pd.to_numeric(df['Price 7/31'], errors='coerce')
+    df['Price 7/24'] = pd.to_numeric(df['Price 7/24'], errors='coerce')
+    df['Quantity 7/31'] = pd.to_numeric(df['Quantity 7/31'], errors='coerce')
+    df['Quantity 7/24'] = pd.to_numeric(df['Quantity 7/24'], errors='coerce')
+
+ 
+    # Filter data where Price Change % is nonzero
+    df_filtered = df[df['Price Change %'] != 0]
+
+    # Scatter plot using Plotly
+    fig = px.scatter(
+        df_filtered, 
+        x='Price Change %', 
+        y='Quantity Change %', 
+        title='Scatter Plot of Price Change % vs Quantity Change %',
+        labels={'Price Change %': 'Price Change %', 'Quantity Change %': 'Quantity Change %'},
+        color='Item',
+        #size='Quantity 7/31',
+        size_max=20,
+        hover_data={
+            'Price Change %': ':.2f',
+            'Quantity Change %': ':.2f',
+            'Price 7/31': ':.2f',
+            'Price 7/24': ':.2f',
+            'Quantity 7/31': ':.2f',
+            'Quantity 7/24': ':.2f'
+        }
+    )
+
+    # Display the plot
+    st.plotly_chart(fig)
+
+    # Display the filtered data
+    st.write("Final filtered data:")
+    st.write(df_filtered)
 
 '''
 # :basket: BetterBasket and Econo
@@ -267,7 +334,7 @@ def display_comparative_analysis(df):
 
 
 
-tab1, tab2, tab3 = st.tabs(["Quantity Impact of Price Changes", "Month-Over-Month Data", "In Depth Analysis"])
+tab1, tab2, tab3, tab4 = st.tabs(["Quantity Impact of Price Changes", "Month-Over-Month Data", "In Depth Analysis", "Aguadilla Sales Data"])
 
 with tab1:
     display_scatter_plot_and_data(df, "Quantity Impact of Price Changes",  "selected_dates_tab1")
@@ -286,3 +353,6 @@ with tab2:
 
 with tab3:
     display_comparative_analysis(df)
+
+with tab4:
+    display_new_chain_data(aguadilla_sales)
