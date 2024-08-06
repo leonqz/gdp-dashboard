@@ -300,6 +300,17 @@ def display_new_chain_data(df):
     # Filter data where Price Change % is nonzero
     df_filtered = df[df['Price Change %'] != 0]
 
+        # Determine increase or decrease
+    df_filtered['Price Change Direction'] = df_filtered['Price Change %'].apply(lambda x: 'increased' if x > 0 else 'decreased')
+    df_filtered['Quantity Change Direction'] = df_filtered['Quantity Change %'].apply(lambda x: 'increased' if x > 0 else 'decreased')
+
+    # Create custom hover text
+    df_filtered['hover_text'] = df_filtered.apply(
+        lambda row: f"<b>{row['Item']}</b> price {row['Price Change Direction']} from {row['Price 7/24']:.2f} to {row['Price 7/31']:.2f}.<br>"
+                    f"{row['Item']} quantity sold {row['Quantity Change Direction']} from {row['Quantity 7/24']:.2f} in 7/24 to {row['Quantity 7/31']:.2f} in 7/31.",
+        axis=1
+    )
+
     # Scatter plot using Plotly
     fig = px.scatter(
         df_filtered, 
@@ -308,24 +319,61 @@ def display_new_chain_data(df):
         title='Scatter Plot of Price Change % vs Quantity Change %',
         labels={'Price Change %': 'Price Change %', 'Quantity Change %': 'Quantity Change %'},
         color='Item',
-        #size='Quantity 7/31',
         size_max=20,
-        hover_data={
-            'Price Change %': ':.2f',
-            'Quantity Change %': ':.2f',
-            'Price 7/31': ':.2f',
-            'Price 7/24': ':.2f',
-            'Quantity 7/31': ':.2f',
-            'Quantity 7/24': ':.2f'
-        }
+        custom_data=['hover_text']
     )
+
+
+    min_value = min(df_filtered[['Price Change %', 'Quantity Change %']].min())
+    max_value = max(df_filtered[['Price Change %', 'Quantity Change %']].max())
+
+    # Add the y=-x line
+    fig.add_shape(
+        type='line',
+        line=dict(dash='dash', color='red'),
+        x0=min_value,
+        y0=-min_value,
+        x1=max_value,
+        y1=-max_value
+    )
+
+
+    fig.update_traces(
+        hovertemplate='%{customdata[0]}<extra></extra>'
+    )
+   # Add annotations
+    fig.add_annotation(
+        x=max_value, 
+        y=max_value,
+        text="Effective Promotion",
+        showarrow=False,
+        xanchor='right',
+        yanchor='bottom',
+        font=dict(color='green', size=14)
+    )
+
+    fig.add_annotation(
+        x=min_value, 
+        y=min_value,
+        text="Ineffective Promotion",
+        showarrow=False,
+        xanchor='left',
+        yanchor='top',
+        font=dict(color='red', size=14)
+    )
+
+    # Update the layout to include the correct axis range
+    fig.update_layout(
+        xaxis=dict(range=[min_value, max_value]),
+        yaxis=dict(range=[min_value, max_value])
+    )
+
 
     # Display the plot
     st.plotly_chart(fig)
 
     # Display the filtered data
-    st.write("Final filtered data:")
-    st.write(df_filtered)
+    st.write(df_filtered[['UPC', 'Item', 'Price 7/31', 'Price 7/24', 'Quantity 7/31', 'Quantity 7/24']])
 
 '''
 # :basket: BetterBasket and Econo
