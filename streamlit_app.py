@@ -385,7 +385,7 @@ def display_new_chain_data(df):
 tab1, tab2, tab3, tab4 = st.tabs(["Humacao - Weekly Price Change Analysis", "Month-Over-Month Data", "In Depth Analysis", "Aguadilla Sales Data"])
 
 with tab1:
-    display_scatter_plot_and_data(df, "Quantity Impact of Price Changes",  "selected_dates_tab1")
+    display_scatter_plot_and_data(df, "Weekly Sales Change vs Price Change - Humacao",  "selected_dates_tab1")
 
 with tab2:
     display_scatter_plot_and_data(df4wk, "Month-Over-Month Data", "selected_dates_tab2")
