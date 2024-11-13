@@ -98,7 +98,7 @@ def display_scatter_plot_and_data(df, title, date_key):
     previous_week_date = (pd.to_datetime(selected_date) - pd.Timedelta(weeks=1)).strftime('%Y-%m-%d')
 
     # Display week comparison text
-    st.markdown(f"### Showing data for  week starting on {selected_date} compared to week starting on {previous_week_date}")
+    st.markdown(f"### Showing data for  week of {selected_date} compared to week of {previous_week_date}")
 
     filtered_df = df[df['Start Date'].dt.strftime('%Y-%m-%d') == selected_date]
 
