@@ -210,9 +210,9 @@ def display_comparative_analysis(df):
     product_history_display = product_history_last_4_weeks[display_columns]
     st.markdown(f"""
         <span style='font-size:30px;'>
-            <span style='background-color:#0000FF; padding:5px; border-radius:5px; font-family:monospace;'>${dollar_change:.2f}</span> 
+            <span style='background-color:#0000FF; padding:5px; border-radius:5px; font-family:monospace;'>{selected_product}</span> 
             <span style='color:{trend_color};'>{trend_emoji} {price_trend}</span> in price from {previous_week_date} to {selected_date} 
-            ({price_change_percent:.2f}%)
+            by ${dollar_change:.2f} ({price_change_percent:.2f}%)
         </span>
         """, unsafe_allow_html=True)
 
