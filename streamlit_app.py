@@ -229,7 +229,7 @@ def display_comparative_analysis(df):
     quantity_trend = "increased" if quantity_change > 0 else "decreased"
     total_quantity_trend = "increased" if total_quantity_change > 0 else "decreased"
 
-    st.markdown(f"**{selected_product}** {quantity_trend} from **{product_data['Previous Week Quantity'].values[0]:,.2f}** to **{product_data['Quantity'].values[0]:,.2f}** ({quantity_percent_change:.2f}%), while all sales {total_quantity_trend} from **{product_data['Previous Week Total Quantity'].values[0]:,.2f}** to **{product_data['Total Quantity'].values[0]:,.2f}** ({total_quantity_percent_change:.2f}%).")
+    st.markdown(f"**{selected_product}** {quantity_trend} from **{product_data['Previous Week Quantity'].values[0]:,}** to **{product_data['Quantity'].values[0]:,}** ({quantity_percent_change:.2f}%), while all store sales {total_quantity_trend} from **{product_data['Previous Week Total Quantity'].values[0]:,}** to **{product_data['Total Quantity'].values[0]:,}** ({total_quantity_percent_change:.2f}%).")
     
     
     
