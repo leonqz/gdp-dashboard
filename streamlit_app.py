@@ -215,7 +215,6 @@ def display_comparative_analysis(df):
             by ${dollar_change:.2f} ({price_change_percent:.2f}%)
         </span>
         """, unsafe_allow_html=True)
-
     # Display summary text
     price_trend = "increased" if dollar_change > 0 else "decreased"
 
