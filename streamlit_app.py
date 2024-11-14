@@ -229,8 +229,15 @@ def display_comparative_analysis(df):
     quantity_trend = "increased" if quantity_change > 0 else "decreased"
     total_quantity_trend = "increased" if total_quantity_change > 0 else "decreased"
 
-    st.markdown(f"**{selected_product}** {quantity_trend} from **{product_data['Previous Week Quantity'].values[0]:,}** to **{product_data['Quantity'].values[0]:,}** ({quantity_percent_change:.2f}%), while all store sales {total_quantity_trend} from **{product_data['Previous Week Total Quantity'].values[0]:,}** to **{product_data['Total Quantity'].values[0]:,}** ({total_quantity_percent_change:.2f}%).")
-    
+    st.markdown(f"""
+        <span style='font-size:30px;'>
+            <span style='background-color:#0000FF; padding:5px; border-radius:5px; font-family:monospace;'>{selected_product}</span> 
+            {quantity_trend} from <strong>{product_data['Previous Week Quantity'].values[0]:,}</strong> to 
+            <strong>{product_data['Quantity'].values[0]:,}</strong> ({quantity_percent_change:.2f}%), while all store sales {total_quantity_trend} 
+            from <strong>{product_data['Previous Week Total Quantity'].values[0]:,}</strong> to 
+            <strong>{product_data['Total Quantity'].values[0]:,}</strong> ({total_quantity_percent_change:.2f}%).
+        </span>
+        """, unsafe_allow_html=True)    
     
     
     # Display charts for Quantity and Total Quantity comparison
